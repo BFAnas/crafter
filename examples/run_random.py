@@ -4,26 +4,27 @@ import crafter
 import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--outdir', default='logdir/crafter_noreward-random/0')
-parser.add_argument('--steps', type=float, default=1e6)
+parser.add_argument("--outdir", default="logdir/crafter_noreward-random/0")
+parser.add_argument("--steps", type=float, default=1e6)
 args = parser.parse_args()
 
 env = crafter.Env()
 env = crafter.Recorder(
-    env, args.outdir,
+    env,
+    args.outdir,
     save_stats=True,
     save_episode=False,
     save_video=False,
 )
 action_space = env.action_space
 
-done = True
+terminated, truncated = True, False
 step = 0
 bar = tqdm.tqdm(total=args.steps, smoothing=0)
-while step < args.steps or not done:
-  if done:
-    env.reset()
-    done = False
-  _, _, done, _ = env.step(action_space.sample())
-  step += 1
-  bar.update(1)
+while step < args.steps or (terminated or truncated):
+    if terminated or truncated:
+        env.reset()
+        terminated, truncated = False, False
+    _, _, terminated, truncated, _ = env.step(action_space.sample())
+    step += 1
+    bar.update(1)
